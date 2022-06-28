@@ -1,0 +1,31 @@
+version: '3.1'
+
+services:
+  site:
+    container_name: sample_web_app
+    networks:
+      - site_net
+    build:
+      context: ./dock
+    command: java -jar sample.jar
+    restart: always
+  frontend:
+    container_name: nginx-certbot
+    restart: unless-stopped
+    networks:
+      - site_net
+    image: jonasal/nginx-certbot
+    ports:
+      - 80:80/tcp
+      - 443:443/tcp
+    environment:
+      CERTBOT_EMAIL: admin@sampledomain.com
+    volumes:
+      - ./conf.d:/etc/nginx/user_conf.d:ro
+      - ./letsencrypt:/etc/letsencrypt
+      - ./certs:/etc/certs
+networks:
+  site_net:
+    ipam:
+      config:
+        - subnet: "172.16.32.0/24"
